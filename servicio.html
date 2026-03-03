@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pago de Servicios</title>
+  <link rel="stylesheet" href="cc/servicio.css">
+</head>
+<body>
+  <div class="pago-container">
+    <h2>Pago de Servicios</h2>
+    
+    <form id="pagoForm">
+      <label for="empresa">Nombre de la Empresa</label>
+      <input type="text" id="empresa" name="empresa" placeholder="Ej: Luz del Sur" required>
+      
+      <label for="servicio">Nombre del Servicio</label>
+      <input type="text" id="servicio" name="servicio" placeholder="Ej: Electricidad" required>
+      
+      <label for="codigo">Código de Cliente</label>
+      <input type="text" id="codigo" name="codigo" placeholder="Ej: 123456789" required>
+      
+      <label for="titular">Titular</label>
+      <input type="text" id="titular" name="titular" placeholder="Nombre completo" required>
+      
+      <label for="monto">Monto (S/)</label>
+      <input type="number" id="monto" name="monto" placeholder="Ej: 50" required>
+      
+      <button type="submit">Pagar</button>
+    </form>
+  </div>
+
+  <script src="app/servicio.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f2f2f2;
+}
+
+.topbar{
+    background:#7b1fa2;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.container{
+    padding:25px;
+    text-align:center;
+}
+
+.name{
+    color:#7b1fa2;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.number{
+    color:#999;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.amount{
+    margin-top:60px;
+    font-weight:bold;
+    color:#7b1fa2;
+}
+
+.currency{
+    font-size:24px;
+}
+
+#monto{
+    font-size:60px;
+    border:none;
+    outline:none;
+    width:150px;
+    text-align:center;
+    background:transparent;
+    color:#7b1fa2;
+}
+
+.limit{
+    margin:30px auto;
+    background:#e6e6e6;
+    padding:10px;
+    border-radius:20px;
+    font-size:13px;
+    color:#666;
+    width:90%;
+}
+
+#errorMonto{
+    color:red;
+    font-size:13px;
+    display:none;
+}
+
+.message-container{
+    position:fixed;
+    bottom:110px;
+    width:100%;
+    padding:0 25px;
+    box-sizing:border-box;
+}
+
+#mensaje{
+    width:100%;
+    border:none;
+    border-bottom:1px solid #ccc;
+    padding:10px 0;
+    font-size:15px;
+    background:transparent;
+    outline:none;
+}
+
+.buttons{
+    position:fixed;
+    bottom:20px;
+    width:100%;
+    display:flex;
+    justify-content:space-around;
+    padding:0 20px;
+    box-sizing:border-box;
+}
+
+.btn{
+    width:45%;
+    padding:15px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:14px;
+    border:none;
+    cursor:pointer;
+}
+
+.btn-gray{
+    background:#f0f0f0;
+    color:#888;
+}
+
+.btn-green{
+    background:#69c6b5;
+    color:white;
+}
+
+.btn:disabled{
+    opacity:0.5;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    top:0; 
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+}
+
+.modal-content{
+    background:white;
+    padding:20px;
+    width:80%;
+    margin:40% auto;
+    text-align:center;
+    border-radius:10px;
+}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enviar Saldo</title>
+
+<style>
+body{
+  font-family: Arial;
+  background: linear-gradient(135deg,#141e30,#243b55);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+
+.card{
+  background:rgba(255,255,255,0.08);
+  padding:25px;
+  border-radius:15px;
+  width:350px;
+  backdrop-filter:blur(10px);
+  position:relative;
+  overflow:hidden;
+  transition:0.3s;
+}
+
+input,button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+}
+
+input{
+  background:rgba(255,255,255,0.2);
+  color:white;
+}
+
+button{
+  background:#00c6ff;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+.usuarioInfo{
+  margin-top:15px;
+  padding:10px;
+  background:rgba(0,0,0,0.3);
+  border-radius:10px;
+  display:none;
+  transition:0.3s;
+}
+
+#mensaje{
+  margin-top:10px;
+  color:#ffcc00;
+}
+
+.success{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#00c853;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  transform:translateY(-100%);
+  transition:0.5s;
+}
+
+.success.active{
+  transform:translateY(0);
+}
+
+.success h2{
+  margin:0;
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <h2>💸 Enviar Saldo</h2>
+
+  <!-- Paso 1: Teléfono -->
+  <div id="paso1">
+    <input type="tel" id="telefono" placeholder="Número de teléfono">
+    <button onclick="siguiente()">Siguiente</button>
+    <p id="mensaje"></p>
+  </div>
+
+  <!-- Paso 2: Monto -->
+  <div class="usuarioInfo" id="usuarioInfo">
+    <p><strong>Nombre:</strong> <span id="nombre"></span></p>
+    <input type="number" id="montoEnviar" placeholder="Monto a enviar">
+    <button onclick="enviar()">Enviar</button>
+    <p id="mensajeMonto"></p>
+  </div>
+
+  <div class="success" id="success">
+    <h2>✅ Saldo Enviado</h2>
+    <p>Transferencia realizada con éxito</p>
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  doc, 
+  runTransaction,
+  addDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
+    authDomain: "roddoxes.firebaseapp.com",
+    databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",  
+    projectId: "roddoxes",
+    storageBucket: "roddoxes.firebasestorage.app",
+    messagingSenderId: "688697487472",
+    appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
+    measurementId: "G-0DLHHJRSFP"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let usuarioDestino = null;
+
+// 🔎 Paso 1: Buscar usuario y mostrar paso 2
+window.siguiente = async function() {
+  const telefono = document.getElementById("telefono").value.trim();
+  const mensaje = document.getElementById("mensaje");
+  mensaje.innerText = "";
+  usuarioDestino = null;
+
+  if (!telefono) {
+    mensaje.innerText = "Ingresa un número";
+    return;
+  }
+
+  const q = query(collection(db,"usuarios"), where("telefono","==",telefono));
+  const snapshot = await getDocs(q);
+
+  if(snapshot.empty){
+    mensaje.innerText = "Usuario no encontrado";
+    return;
+  }
+
+  snapshot.forEach(docu => {
+    usuarioDestino = { id: docu.id, ...docu.data() };
+  });
+
+  // Mostrar paso 2
+  document.getElementById("nombre").innerText = usuarioDestino.nombre;
+  document.getElementById("paso1").style.display = "none";
+  document.getElementById("usuarioInfo").style.display = "block";
+  document.getElementById("montoEnviar").focus();
+};
+
+// 💸 Paso 2: Enviar saldo
+window.enviar = async function() {
+  const montoInput = document.getElementById("montoEnviar");
+  const monto = parseFloat(montoInput.value);
+  const mensajeMonto = document.getElementById("mensajeMonto");
+  mensajeMonto.innerText = "";
+
+  if(!monto || monto <= 0){
+    mensajeMonto.innerText = "Monto inválido";
+    return;
+  }
+
+  const user = auth.currentUser;
+  if(!user){
+    mensajeMonto.innerText = "Debes iniciar sesión";
+    return;
+  }
+
+  if(!usuarioDestino){
+    mensajeMonto.innerText = "Usuario inválido";
+    return;
+  }
+
+  if(user.uid === usuarioDestino.id){
+    mensajeMonto.innerText = "No puedes enviarte dinero a ti mismo";
+    return;
+  }
+
+  const remitenteRef = doc(db,"usuarios",user.uid);
+  const destinoRef = doc(db,"usuarios",usuarioDestino.id);
+
+  try {
+    // Bloquear UI mientras transacción ocurre
+    montoInput.disabled = true;
+
+    await runTransaction(db, async (transaction) => {
+      const remitenteSnap = await transaction.get(remitenteRef);
+      const destinoSnap = await transaction.get(destinoRef);
+
+      if(!remitenteSnap.exists()) throw "Remitente no existe";
+      if(!destinoSnap.exists()) throw "Destino no existe";
+
+      const remitenteData = remitenteSnap.data();
+      const destinoData = destinoSnap.data();
+
+      if(monto > remitenteData.monto){
+        throw "Saldo insuficiente";
+      }
+
+      transaction.update(remitenteRef, {
+        monto: remitenteData.monto - monto
+      });
+
+      transaction.update(destinoRef, {
+        monto: destinoData.monto + monto
+      });
+    });
+
+    // Guardar historial
+    await addDoc(collection(db,"transferencias"),{
+      deUid: user.uid,
+      paraUid: usuarioDestino.id,
+      monto: monto,
+      fecha: new Date(),
+      estado: "exitosa"
+    });
+
+    // Mostrar éxito
+    const success = document.getElementById("success");
+    success.classList.add("active");
+
+    setTimeout(()=>{
+      success.classList.remove("active");
+      // Reset card
+      document.getElementById("paso1").style.display="block";
+      document.getElementById("usuarioInfo").style.display="none";
+      document.getElementById("telefono").value="";
+      document.getElementById("montoEnviar").value="";
+      montoInput.disabled = false;
+    },2000);
+
+  } catch(error){
+    mensajeMonto.innerText = "Error: " + error;
+    montoInput.disabled = false;
+  }
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+
+<style>
+*{
+  box-sizing: border-box;
+  margin:0;
+  padding:0;
+  font-family: 'Segoe UI', Arial;
+}
+
+body{
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  height: 100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.box{
+  background:#ffffff;
+  padding:30px;
+  width:90%;
+  max-width:420px;
+  border-radius:15px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  text-align:center;
+}
+
+h2{
+  margin-bottom:20px;
+  color:#111;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  background:#4f46e5;
+  border:none;
+  color:white;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  transition: all 0.3s ease;
+}
+
+button:disabled{
+  background:#818cf8;
+  cursor:not-allowed;
+}
+
+.error{
+  margin-top:10px;
+  color:#e11d48;
+  font-weight:bold;
+}
+
+.success{
+  margin-top:10px;
+  color:#16a34a;
+  font-weight:bold;
+}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .box{
+    padding:20px;
+  }
+  input, button{
+    font-size:14px;
+    padding:10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Iniciar Sesión</h2>
+
+  <input id="loginUser" placeholder="Usuario">
+  <input id="loginPass" type="password" placeholder="Contraseña">
+
+  <button id="btnLogin">Entrar</button>
+
+  <p id="loginStatus" class="error" style="display:none;"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
+    authDomain: "roddoxes.firebaseapp.com",
+    databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",  
+    projectId: "roddoxes",
+    storageBucket: "roddoxes.firebasestorage.app",
+    messagingSenderId: "688697487472",
+    appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
+    measurementId: "G-0DLHHJRSFP"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const btnLogin = document.getElementById("btnLogin");
+const loginUser = document.getElementById("loginUser");
+const loginPass = document.getElementById("loginPass");
+const loginStatus = document.getElementById("loginStatus");
+
+btnLogin.onclick = async () => {
+
+  const user = loginUser.value.trim();
+  const pass = loginPass.value.trim();
+
+  if(!user || !pass){
+    loginStatus.style.display = "block";
+    loginStatus.textContent = "Completa todos los campos";
+    loginStatus.className = "error";
+    return;
+  }
+
+  // Mensaje mientras verifica
+  loginStatus.style.display = "block";
+  loginStatus.textContent = "Verificando...";
+  loginStatus.className = "success";
+  btnLogin.disabled = true;
+
+  try {
+    const snap = await get(ref(db, "admins/" + user.replace(".", "_")));
+
+    if(!snap.exists()){
+      loginStatus.style.display = "block";
+      loginStatus.textContent = "Usuario no existe";
+      loginStatus.className = "error";
+      btnLogin.disabled = false;
+      return;
+    }
+
+    const data = snap.val();
+
+    if(data.pass !== pass){
+      loginStatus.style.display = "block";
+      loginStatus.textContent = "Contraseña incorrecta";
+      loginStatus.className = "error";
+      btnLogin.disabled = false;
+      return;
+    }
+
+    loginStatus.style.display = "block";
+    loginStatus.textContent = "¡Bienvenido, " + data.name + "!";
+    loginStatus.className = "success";
+
+    // Guardar datos
+    localStorage.setItem("adminUser", data.user);
+    localStorage.setItem("adminName", data.name);
+    localStorage.setItem("adminRole", data.role);
+
+    // Redirigir tras 1s para efecto
+    setTimeout(()=>{ window.location.href = "token admin"; }, 1000);
+
+  } catch(e) {
+    loginStatus.style.display = "block";
+    loginStatus.textContent = "Error de conexión. Intenta nuevamente.";
+    loginStatus.className = "error";
+    btnLogin.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

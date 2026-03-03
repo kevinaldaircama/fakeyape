@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yapear</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<link rel="stylesheet" href="cc/envio.css">
+</head>
+
+<body>
+
+<div class="topbar">Yapear a</div>
+
+<div class="container">
+    <div class="name" id="nombre-label">Cargando...</div>
+    <div class="number" id="numero-label"></div>
+
+    <div class="amount">
+        <span class="currency">S/</span>
+        <input type="number" id="monto" value="0" min="0">
+    </div>
+
+    <div class="limit">
+        Límite por yapeo S/ 500, límite total por día S/ 2000
+    </div>
+
+    <div id="errorMonto">Ingresa un monto válido</div>
+</div>
+
+<div class="message-container">
+    <input type="text" id="mensaje" placeholder="Agregar mensaje">
+</div>
+
+<div class="buttons">
+    <button class="btn btn-gray" id="btn-bancos" disabled>OTROS BANCOS</button>
+    <button class="btn btn-green" id="btn-yapear" disabled>YAPEAR</button>
+</div>
+
+<div class="modal" id="modalSaldo">
+  <div class="modal-content">
+    <p>Saldo insuficiente</p>
+    <button onclick="cerrarModalSaldo()">Cerrar</button>
+  </div>
+</div>
+
+<script src="app/envio.js"></script>
+</body>
+</html>

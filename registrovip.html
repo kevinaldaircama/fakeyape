@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crear una Cuenta</title>
+<link rel="manifest" href="manifest.json" />  
+<meta name="theme-color" content="#720e9e" />  
+<link rel="icon" type="image/png" href="imagen/app_icon_xxxhdpi.png">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body{
+  background:#f2eef3;
+}
+
+/* HEADER */
+.header{
+  background:#7A1B7E;
+  color:white;
+  padding:20px 20px 30px 20px;
+}
+
+.header-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.header-top span{
+  font-size:22px;
+  cursor:pointer;
+}
+
+.header h1{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.header p{
+  font-size:14px;
+  margin-top:10px;
+  color:#f1e6f4;
+}
+
+/* ALERTA */
+.alert{
+  background:#FFC107;
+  color:#000;
+  margin-top:15px;
+  padding:12px;
+  border-radius:8px;
+  display:flex;
+  gap:10px;
+  font-size:14px;
+}
+
+/* FORM */
+.container{
+  padding:25px 20px;
+}
+
+.input-group{
+  margin-bottom:25px;
+}
+
+.input-group input{
+  width:100%;
+  border:none;
+  border-bottom:1px solid #999;
+  padding:10px 0;
+  background:transparent;
+  font-size:16px;
+}
+
+.btn{
+  width:100%;
+  background:#20B2AA;
+  border:none;
+  padding:15px;
+  color:white;
+  font-size:18px;
+  font-weight:bold;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.terms{
+  text-align:center;
+  margin-top:20px;
+  text-decoration:underline;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.info-box{
+  margin-top:40px;
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+  font-size:14px;
+}
+
+/* PASOS */
+.step{ display:none; }
+.active{ display:block; }
+
+/* MODAL FIREBASE */
+#modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+}
+
+#modal-content{
+  background:white;
+  width:90%;
+  max-width:400px;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+}
+
+iframe{
+  width:100%;
+  height:200px;
+  border:none;
+  margin-top:10px;
+}
+
+/* MODAL TERMINOS */
+#modalTerminos{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
+.modal-box{
+  background:white;
+  width:90%;
+  max-width:420px;
+  max-height:85vh;
+  overflow-y:auto;
+  border-radius:15px;
+  padding:20px;
+  position:relative;
+}
+
+.close-btn{
+  position:absolute;
+  right:15px;
+  top:15px;
+  font-size:20px;
+  cursor:pointer;
+  color:#555;
+}
+
+.modal-box h2{
+  margin-bottom:15px;
+}
+
+.modal-box h3{
+  margin-top:15px;
+  font-size:16px;
+}
+
+.modal-box p{
+  font-size:14px;
+  margin-top:5px;
+  line-height:1.5;
+  color:#444;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span><i class="fa-solid fa-arrow-left"></i></span>
+    <h1>Crear una Cuenta</h1>
+  </div>
+  <p>Completa el formulario. Recuerda que todos los datos son obligatorios y no se podrán cambiar.</p>
+
+  <div class="alert">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    los precios son únicos y no se cambian, si te vendieron de mas posiblemente te ayan estafado o son comisionista.
+  </div>
+</div>
+
+<div class="container">
+
+<div id="step1" class="step active">
+  <div class="input-group">
+    <input type="text" id="usuario" placeholder="Titular">
+  </div>
+
+  <div class="input-group">
+    <input type="email" id="correo" placeholder="Correo electrónico">
+  </div>
+
+  <div class="input-group">
+    <input type="tel" id="telefono" placeholder="Celular">
+  </div>
+
+  <div class="input-group">
+    <input type="number" id="monto" placeholder="Monto inicial">
+  </div>
+
+  <button class="btn" onclick="nextStep(1)">Siguiente</button>
+</div>
+
+<div id="step2" class="step">
+  <div class="input-group">
+    <input type="password" id="clave" placeholder="Contraseña">
+  </div>
+  <div class="input-group">
+    <input type="password" id="clave2" placeholder="Repetir contraseña">
+  </div>
+  <div class="input-group">
+    <input type="number" id="pin" placeholder="PIN">
+  </div>
+
+  <button class="btn" onclick="registrarUsuario()">Registrar</button>
+</div>
+
+<div class="terms" onclick="abrirTerminos()">Términos y Condiciones</div>
+
+<div class="info-box">
+  💡 recuerda que puedes utilizar esta cuenta en varios dispositivos
+</div>
+</div>
+
+<!-- MODALES -->
+<div id="modal">
+  <div id="modal-content"></div>
+</div>
+
+<div id="modalTerminos" onclick="cerrarSiFondo(event)">
+  <div class="modal-box">
+    <i class="fa-solid fa-xmark close-btn" onclick="cerrarTerminos()"></i>
+    <h2>Términos y Condiciones</h2>
+    <h3>1. Finalidad del producto</h3>
+    <p>Aplicación desarrollada con fines <b>recreativos y de entretenimiento</b>.</p>
+    <h3>2. Cuentas y acceso</h3>
+    <p>Cuenta personal e intransferible. Prohibido compartir acceso.</p>
+    <h3>3. Seguridad y baneos</h3>
+    <p>El sistema puede <b>banear automáticamente</b> ante irregularidades.</p>
+    <h3>4. Compras</h3>
+    <p>Solo válidas compras en canales oficiales.</p>
+    <h3>5. Política de reembolsos</h3>
+    <p><b>No se realizarán devoluciones ni reembolsos.</b></p>
+    <h3>6. Modificaciones</h3>
+    <p>El uso implica aceptación total de estos términos.</p>
+  </div>
+</div>
+
+<script>
+firebase.initializeApp({  
+  apiKey: "AIzaSyCOpeQn7JpBb35PslPnwyf_f4LK7s-pkow",
+  authDomain: "kevin-5e678.firebaseapp.com",
+  databaseURL: "https://kevin-5e678-default-rtdb.firebaseio.com",
+  projectId: "kevin-5e678",
+  storageBucket: "kevin-5e678.firebasestorage.app",
+  messagingSenderId: "789755942199",
+  appId: "1:789755942199:web:f37acca8c26f7fbb4c36b2"
+});  
+  
+const auth = firebase.auth();  
+const db = firebase.firestore();  
+
+const modal = document.getElementById("modal");  
+const modalContent = document.getElementById("modal-content");  
+
+const correo = document.getElementById("correo");  
+const clave = document.getElementById("clave");  
+const clave2 = document.getElementById("clave2");  
+const usuario = document.getElementById("usuario");  
+const telefono = document.getElementById("telefono");
+const monto = document.getElementById("monto");  
+const pin = document.getElementById("pin");  
+
+function nextStep(step){  
+  document.getElementById("step"+step).classList.remove("active");  
+  document.getElementById("step"+(step+1)).classList.add("active");  
+}  
+
+async function registrarUsuario(){
+
+  if(clave.value !== clave2.value){
+    alert("Las contraseñas no coinciden");
+    return;
+  }
+
+  if(clave.value.length < 6){
+    alert("La contraseña debe tener mínimo 6 caracteres");
+    return;
+  }
+
+  modal.style.display="flex";  
+  modalContent.innerHTML="⏳ Registrando...";  
+
+  try {
+    // Revisar si el correo ya existe
+    const correoQuery = await db.collection("usuarios").where("correo","==",correo.value).get();
+    if(!correoQuery.empty){
+      modalContent.innerHTML="❌ Este correo ya está registrado";
+      return;
+    }
+
+    // Revisar si el teléfono ya existe
+    const telefonoQuery = await db.collection("usuarios").where("telefono","==",telefono.value).get();
+    if(!telefonoQuery.empty){
+      modalContent.innerHTML="❌ Este número de teléfono ya está registrado";
+      return;
+    }
+
+    // Crear usuario en Firebase Auth
+    const res = await auth.createUserWithEmailAndPassword(correo.value, clave.value);
+    const user = res.user;
+
+    const actionCodeSettings = {
+      url: "https://roddox.es/inicio.html",
+      handleCodeInApp: false
+    };
+
+    await user.sendEmailVerification(actionCodeSettings);
+
+    await db.collection("usuarios").doc(user.uid).set({
+      nombre: usuario.value,
+      correo: correo.value,
+      telefono: telefono.value,
+      monto: monto.value,
+      pin: pin.value,
+      verificado: false,
+      fecha: new Date()
+    });
+
+    modalContent.innerHTML = `  
+      <h3>📩 Verifica tu correo</h3>  
+      <p>Te enviamos un enlace para activar tu cuenta.</p>
+      <p>Revisa tu bandeja de entrada o spam.</p>
+      <button onclick="window.location.reload()" 
+        style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px">
+        🔄 Aceptar
+      </button>  
+    `;  
+
+  } catch(e) {
+    modalContent.innerHTML="❌ "+e.message;
+  }
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    user.reload().then(()=>{
+      if(!user.emailVerified){
+        console.log("Correo no verificado");
+      }else{
+        db.collection("usuarios").doc(user.uid).update({ verificado: true });
+      }
+    });
+  }
+});
+
+function abrirTerminos(){ document.getElementById("modalTerminos").style.display="flex"; }
+function cerrarTerminos(){ document.getElementById("modalTerminos").style.display="none"; }
+function cerrarSiFondo(e){ if(e.target.id==="modalTerminos"){ cerrarTerminos(); } }
+
+</script>
+</body>
+</html>
