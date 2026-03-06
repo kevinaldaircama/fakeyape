@@ -1,14 +1,14 @@
 // 🔥 CONFIG FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
-    authDomain: "roddoxes.firebaseapp.com",
-    databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",
-    projectId: "roddoxes",
-    storageBucket: "roddoxes.firebasestorage.app",
-    messagingSenderId: "688697487472",
-    appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
-    measurementId: "G-0DLHHJRSFP"
-  };
+  authDomain: "roddoxes.firebaseapp.com",
+  databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",
+  projectId: "roddoxes",
+  storageBucket: "roddoxes.firebasestorage.app",
+  messagingSenderId: "688697487472",
+  appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
+  measurementId: "G-0DLHHJRSFP"
+};
 
 firebase.initializeApp(firebaseConfig);
 
@@ -33,25 +33,57 @@ const apodo = urlParams.get("apodo");
 function cerrarModalSaldo() {
   document.getElementById("modalSaldo").style.display = "none";
 }
+
 function mostrarModalSaldo() {
   document.getElementById("modalSaldo").style.display = "block";
 }
 
+// 🔹 Función para ocultar nombre estilo "luz ser*"
+function ocultarNombre(nombreCompleto) {
+
+  const partes = nombreCompleto.toLowerCase().split(" ");
+
+  if (partes.length >= 3) {
+    const nombre = partes[0];
+    const apellido = partes[2].substring(0,3) + "*";
+    return nombre + " " + apellido;
+  }
+
+  if (partes.length === 2) {
+    const nombre = partes[0];
+    const apellido = partes[1].substring(0,3) + "*";
+    return nombre + " " + apellido;
+  }
+
+  return nombreCompleto.substring(0,3) + "*";
+}
+
 // Cargar contacto
 if (apodo) {
+
   realtimeDB.ref("contactos/" + apodo).once("value").then(snapshot => {
+
     if (snapshot.exists()) {
+
       const data = snapshot.val();
-      nombreLabel.textContent = data.nombre || apodo;
+
+      const nombreOriginal = data.nombre || apodo;
+      const nombreOculto = ocultarNombre(nombreOriginal);
+
+      nombreLabel.textContent = nombreOculto;
+
       if (data.numero) {
-  const numero = data.numero.toString();
-  const ultimos3 = numero.slice(-3);
-  numeroLabel.textContent = "*** *** " + ultimos3;
-} else {
-  numeroLabel.textContent = "";
+        const numero = data.numero.toString();
+        const ultimos3 = numero.slice(-3);
+        numeroLabel.textContent = "*** *** " + ultimos3;
+      } else {
+        numeroLabel.textContent = "";
       }
+
     }
+
   });
+
 }
 
 // Validación monto
@@ -60,11 +92,14 @@ montoInput.addEventListener('focus', () => {
 });
 
 montoInput.addEventListener('input', () => {
+
   const valor = parseFloat(montoInput.value);
   const valido = !isNaN(valor) && valor > 0;
+
   errorMonto.style.display = valido ? "none" : "block";
   btnBancos.disabled = !valido;
   btnYapear.disabled = !valido;
+
 });
 
 // Otros bancos
