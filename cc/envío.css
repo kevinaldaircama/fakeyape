@@ -1,81 +1,105 @@
-* {
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Arial, sans-serif;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
 }
 
-body {
-  margin: 0;
-  background: #f2f2f2;
+body{
+background:linear-gradient(135deg,#720e9e,#9b27d8);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
-.app {
-  max-width: 420px;
-  margin: auto;
-  background: white;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.app{
+width:100%;
+max-width:420px;
+background:white;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+display:flex;
+flex-direction:column;
 }
 
-/* Barra superior */
-.topbar {
-  background: #720e9e;
-  color: white;
-  padding: 15px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
+.topbar{
+background:#720e9e;
+color:white;
+text-align:center;
+padding:18px;
+font-size:20px;
+font-weight:bold;
+letter-spacing:1px;
 }
 
-/* Contenido */
-.content {
-  padding: 20px;
-  flex: 1;
+.content{
+padding:25px;
+display:flex;
+flex-direction:column;
+gap:12px;
 }
 
-.label {
-  font-size: 13px;
-  color: #555;
-  margin-bottom: 5px;
-  margin-top: 10px;
-  font-weight: 600;
+.label{
+font-size:14px;
+font-weight:bold;
+color:#555;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 14px;
-  outline: none;
-  transition: border 0.3s;
+input{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:16px;
+transition:0.2s;
 }
 
-input:focus {
-  border-color: #720e9e;
+input:focus{
+border-color:#720e9e;
+outline:none;
+box-shadow:0 0 5px rgba(114,14,158,0.3);
 }
 
-.btn {
-  margin-top: 20px;
-  width: 100%;
-  padding: 14px;
-  background: #720e9e;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s;
+.btn{
+margin-top:15px;
+background:#720e9e;
+color:white;
+border:none;
+padding:14px;
+border-radius:12px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+transition:0.2s;
 }
 
-.btn:hover {
-  background: #5b0b7e;
+.btn:hover{
+background:#5c0b82;
+transform:scale(1.02);
 }
 
-/* Footer estilo app */
-.footer {
-  text-align: center;
-  padding: 10px;
-  font-size: 12px;
-  color: #888;
+.btn:active{
+transform:scale(0.97);
+}
+
+.footer{
+text-align:center;
+padding:12px;
+font-size:13px;
+color:#777;
+background:#f5f5f5;
+}
+
+@media (max-width:480px){
+
+body{
+padding:10px;
+}
+
+.app{
+border-radius:15px;
+}
+
 }
