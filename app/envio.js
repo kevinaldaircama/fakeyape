@@ -38,24 +38,33 @@ function mostrarModalSaldo() {
   document.getElementById("modalSaldo").style.display = "block";
 }
 
-// 🔹 Función para ocultar nombre estilo "luz ser*"
+// 🔹 Función para capitalizar texto
+function capitalizar(texto) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
+// 🔹 Función para ocultar nombre estilo "Luz Ser*"
 function ocultarNombre(nombreCompleto) {
 
-  const partes = nombreCompleto.toLowerCase().split(" ");
+  const partes = nombreCompleto.trim().split(" ");
 
   if (partes.length >= 3) {
-    const nombre = partes[0];
-    const apellido = partes[2].substring(0,3) + "*";
+
+    const nombre = capitalizar(partes[0]);
+    const apellido = capitalizar(partes[2].substring(0,3)) + "*";
+
     return nombre + " " + apellido;
   }
 
   if (partes.length === 2) {
-    const nombre = partes[0];
-    const apellido = partes[1].substring(0,3) + "*";
+
+    const nombre = capitalizar(partes[0]);
+    const apellido = capitalizar(partes[1].substring(0,3)) + "*";
+
     return nombre + " " + apellido;
   }
 
-  return nombreCompleto.substring(0,3) + "*";
+  return capitalizar(nombreCompleto.substring(0,3)) + "*";
 }
 
 // Cargar contacto
