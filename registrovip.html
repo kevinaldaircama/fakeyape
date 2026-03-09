@@ -273,17 +273,17 @@ iframe{
     <p>El uso implica aceptación total de estos términos.</p>
   </div>
 </div>
-
 <script>
+
 firebase.initializeApp({  
-   apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
-  authDomain: "roddoxes.firebaseapp.com",
-  databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",
-  projectId: "roddoxes",
-  storageBucket: "roddoxes.firebasestorage.app",
-  messagingSenderId: "688697487472",
-  appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
-  measurementId: "G-0DLHHJRSFP"
+apiKey:"AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
+authDomain:"roddoxes.firebaseapp.com",
+databaseURL:"https://roddoxes-default-rtdb.firebaseio.com",
+projectId:"roddoxes",
+storageBucket:"roddoxes.firebasestorage.app",
+messagingSenderId:"688697487472",
+appId:"1:688697487472:web:7e3d19b907ae330dda04b5",
+measurementId:"G-0DLHHJRSFP"
 });  
   
 const auth = firebase.auth();  
@@ -301,117 +301,171 @@ const monto = document.getElementById("monto");
 const pin = document.getElementById("pin");  
 
 function nextStep(step){  
-  document.getElementById("step"+step).classList.remove("active");  
-  document.getElementById("step"+(step+1)).classList.add("active");  
+document.getElementById("step"+step).classList.remove("active");  
+document.getElementById("step"+(step+1)).classList.add("active");  
 }  
 
 async function registrarUsuario(){
 
-  if(clave.value !== clave2.value){
-    alert("Las contraseñas no coinciden");
-    return;
-  }
+const email = correo.value.trim().toLowerCase();
 
-  if(clave.value.length < 6){
-    alert("La contraseña debe tener mínimo 6 caracteres");
-    return;
-  }
+const dominiosPermitidos = [
+"gmail.com",
+"hotmail.com",
+"outlook.com"
+];
 
-  modal.style.display="flex";  
-  modalContent.innerHTML="⏳ Registrando...";  
+const dominiosTemporales = [
+"tempmail.com",
+"10minutemail.com",
+"guerrillamail.com",
+"mailinator.com",
+"yopmail.com",
+"trashmail.com",
+"temp-mail.org",
+"fakeinbox.com",
+"getnada.com",
+"sharklasers.com",
+"dispostable.com",
+"maildrop.cc",
+"mintemail.com",
+"throwawaymail.com",
+"mailnesia.com"
+];
 
-  try {
-
-    const correoQuery = await db.collection("usuarios").where("correo","==",correo.value).get();
-    if(!correoQuery.empty){
-      modalContent.innerHTML="❌ Este correo ya está registrado";
-      return;
-    }
-
-    const telefonoQuery = await db.collection("usuarios").where("telefono","==",telefono.value).get();
-    if(!telefonoQuery.empty){
-      modalContent.innerHTML="❌ Este número de teléfono ya está registrado";
-      return;
-    }
-
-    const res = await auth.createUserWithEmailAndPassword(correo.value, clave.value);
-    const user = res.user;
-
-    const actionCodeSettings = {
-      url: "https://roddox.es/inicio.html",
-      handleCodeInApp: false
-    };
-
-    await user.sendEmailVerification(actionCodeSettings);
-
-    await db.collection("usuarios").doc(user.uid).set({
-      nombre: usuario.value,
-      correo: correo.value,
-      telefono: telefono.value,
-      monto: monto.value,
-      pin: pin.value,
-      verificado: false,
-      fecha: new Date()
-    });
-
-    mostrarModalVerificacion();
-    verificarCorreoAutomatico();
-
-  } catch(e) {
-    modalContent.innerHTML="❌ "+e.message;
-  }
+if(!email.includes("@")){
+alert("Correo inválido");
+return;
 }
 
-/* CONTADOR REENVIO */
+const partes = email.split("@");
+const usuarioEmail = partes[0];
+const dominio = partes[1];
+
+/* 🚫 BLOQUEAR CARACTERES ESPECIALES */
+const caracteresProhibidos = /[+#$&.,:!*%^()=\/\\|?<>\[\]{}]/;
+
+if(caracteresProhibidos.test(usuarioEmail)){
+alert("❌ No se permiten caracteres especiales en el correo");
+return;
+}
+
+/* 🚫 BLOQUEAR DOMINIOS TEMPORALES */
+if(dominiosTemporales.includes(dominio)){
+alert("❌ No se permiten correos temporales");
+return;
+}
+
+/* ✅ SOLO DOMINIOS PERMITIDOS */
+if(!dominiosPermitidos.includes(dominio)){
+alert("❌ Solo se permiten Gmail, Hotmail u Outlook");
+return;
+}
+
+if(clave.value !== clave2.value){
+alert("Las contraseñas no coinciden");
+return;
+}
+
+if(clave.value.length < 6){
+alert("La contraseña debe tener mínimo 6 caracteres");
+return;
+}
+
+modal.style.display="flex";
+modalContent.innerHTML="⏳ Registrando...";
+
+try{
+
+const correoQuery = await db.collection("usuarios").where("correo","==",email).get();
+if(!correoQuery.empty){
+modalContent.innerHTML="❌ Este correo ya está registrado";
+return;
+}
+
+const telefonoQuery = await db.collection("usuarios").where("telefono","==",telefono.value).get();
+if(!telefonoQuery.empty){
+modalContent.innerHTML="❌ Este número de teléfono ya está registrado";
+return;
+}
+
+const res = await auth.createUserWithEmailAndPassword(email,clave.value);
+const user = res.user;
+
+await user.sendEmailVerification({
+url:"https://roddox.es/inicio.html",
+handleCodeInApp:false
+});
+
+await db.collection("usuarios").doc(user.uid).set({
+nombre:usuario.value,
+correo:email,
+telefono:telefono.value,
+monto:monto.value,
+pin:pin.value,
+verificado:false,
+fecha:new Date()
+});
+
+mostrarModalVerificacion();
+verificarCorreoAutomatico();
+
+}catch(e){
+modalContent.innerHTML="❌ "+e.message;
+}
+
+}
+
+/* CONTADOR */
 
 let tiempoEspera = 30;
 let intervalo = null;
 
 function iniciarContador(){
 
-  const btn = document.getElementById("btnReenviar");
-  if(!btn) return;
+const btn = document.getElementById("btnReenviar");
+if(!btn) return;
 
-  btn.disabled = true;
+btn.disabled=true;
 
-  intervalo = setInterval(()=>{
+intervalo=setInterval(()=>{
 
-    tiempoEspera--;
-    btn.innerText = "Reenviar en " + tiempoEspera + "s";
+tiempoEspera--;
+btn.innerText="Reenviar en "+tiempoEspera+"s";
 
-    if(tiempoEspera <= 0){
-      clearInterval(intervalo);
-      btn.disabled = false;
-      btn.innerText = "📩 Reenviar correo";
-      tiempoEspera = 30;
-    }
+if(tiempoEspera<=0){
+clearInterval(intervalo);
+btn.disabled=false;
+btn.innerText="📩 Reenviar correo";
+tiempoEspera=30;
+}
 
-  },1000);
+},1000);
 
 }
 
-/* REENVIAR VERIFICACION */
+/* REENVIAR CORREO */
 
 async function reenviarCorreo(){
 
-  const user = auth.currentUser;
+const user = auth.currentUser;
 
-  if(!user){
-    modalContent.innerHTML="❌ No hay sesión activa";
-    return;
-  }
+if(!user){
+modalContent.innerHTML="❌ No hay sesión activa";
+return;
+}
 
-  try{
+try{
 
-    await user.sendEmailVerification({
-      url:"https://roddox.es/inicio.html"
-    });
+await user.sendEmailVerification({
+url:"https://roddox.es/inicio.html"
+});
 
-    iniciarContador();
+iniciarContador();
 
-  }catch(e){
-    alert("Error: "+e.message);
-  }
+}catch(e){
+alert("Error: "+e.message);
+}
 
 }
 
@@ -421,7 +475,8 @@ function mostrarModalVerificacion(){
 
 modal.style.display="flex";
 
-modalContent.innerHTML = `
+modalContent.innerHTML=`
+
 <h3>📩 Verifica tu correo</h3>
 
 <p>Te enviamos un enlace de verificación.</p>
@@ -441,62 +496,77 @@ Ir a iniciar sesión
 <p style="margin-top:10px;font-size:13px;color:#777">
 Si ya verificaste tu correo espera unos segundos.
 </p>
+
 `;
 
 iniciarContador();
 
 }
 
-/* DETECTAR VERIFICACION AUTOMATICA */
+/* DETECTAR VERIFICACION */
 
 function verificarCorreoAutomatico(){
 
-setInterval(async ()=>{
+setInterval(async()=>{
 
-  const user = auth.currentUser;
+const user = auth.currentUser;
 
-  if(user){
+if(user){
 
-    await user.reload();
+await user.reload();
 
-    if(user.emailVerified){
+if(user.emailVerified){
 
-      modalContent.innerHTML = `
-      <h3>✅ Cuenta verificada</h3>
+modalContent.innerHTML=`
 
-      <p>Tu correo fue verificado correctamente</p>
+<h3>✅ Cuenta verificada</h3>
 
-      <button onclick="window.location.href='inicio.html'"
-      style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px">
-      Entrar
-      </button>
-      `;
+<p>Tu correo fue verificado correctamente</p>
 
-      db.collection("usuarios").doc(user.uid).update({
-        verificado:true
-      });
+<button onclick="window.location.href='inicio.html'"
+style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px">
+Entrar
+</button>
 
-    }
+`;
 
-  }
+db.collection("usuarios").doc(user.uid).update({
+verificado:true
+});
+
+}
+
+}
 
 },5000);
 
 }
 
+/* DETECTAR LOGIN */
+
 auth.onAuthStateChanged(user=>{
-  if(user){
-    user.reload().then(()=>{
-      if(user.emailVerified){
-        db.collection("usuarios").doc(user.uid).update({ verificado: true });
-      }
-    });
-  }
+if(user){
+user.reload().then(()=>{
+if(user.emailVerified){
+db.collection("usuarios").doc(user.uid).update({verificado:true});
+}
+});
+}
 });
 
-function abrirTerminos(){ document.getElementById("modalTerminos").style.display="flex"; }
-function cerrarTerminos(){ document.getElementById("modalTerminos").style.display="none"; }
-function cerrarSiFondo(e){ if(e.target.id==="modalTerminos"){ cerrarTerminos(); } }
+function abrirTerminos(){ 
+document.getElementById("modalTerminos").style.display="flex"; 
+}
+
+function cerrarTerminos(){ 
+document.getElementById("modalTerminos").style.display="none"; 
+}
+
+function cerrarSiFondo(e){ 
+if(e.target.id==="modalTerminos"){ 
+cerrarTerminos(); 
+} 
+}
 
 </script>
 </body>
