@@ -321,21 +321,19 @@ async function registrarUsuario(){
   modalContent.innerHTML="⏳ Registrando...";  
 
   try {
-    // Revisar si el correo ya existe
+
     const correoQuery = await db.collection("usuarios").where("correo","==",correo.value).get();
     if(!correoQuery.empty){
       modalContent.innerHTML="❌ Este correo ya está registrado";
       return;
     }
 
-    // Revisar si el teléfono ya existe
     const telefonoQuery = await db.collection("usuarios").where("telefono","==",telefono.value).get();
     if(!telefonoQuery.empty){
       modalContent.innerHTML="❌ Este número de teléfono ya está registrado";
       return;
     }
 
-    // Crear usuario en Firebase Auth
     const res = await auth.createUserWithEmailAndPassword(correo.value, clave.value);
     const user = res.user;
 
@@ -356,27 +354,140 @@ async function registrarUsuario(){
       fecha: new Date()
     });
 
-    modalContent.innerHTML = `  
-      <h3>📩 Verifica tu correo</h3>  
-      <p>Te enviamos un enlace para activar tu cuenta.</p>
-      <p>Revisa tu bandeja de entrada o spam.</p>
-      <button onclick="window.location.reload()" 
-        style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px">
-        🔄 Aceptar
-      </button>  
-    `;  
+    mostrarModalVerificacion();
+    verificarCorreoAutomatico();
 
   } catch(e) {
     modalContent.innerHTML="❌ "+e.message;
   }
 }
 
+/* CONTADOR REENVIO */
+
+let tiempoEspera = 30;
+let intervalo = null;
+
+function iniciarContador(){
+
+  const btn = document.getElementById("btnReenviar");
+  if(!btn) return;
+
+  btn.disabled = true;
+
+  intervalo = setInterval(()=>{
+
+    tiempoEspera--;
+    btn.innerText = "Reenviar en " + tiempoEspera + "s";
+
+    if(tiempoEspera <= 0){
+      clearInterval(intervalo);
+      btn.disabled = false;
+      btn.innerText = "📩 Reenviar correo";
+      tiempoEspera = 30;
+    }
+
+  },1000);
+
+}
+
+/* REENVIAR VERIFICACION */
+
+async function reenviarCorreo(){
+
+  const user = auth.currentUser;
+
+  if(!user){
+    modalContent.innerHTML="❌ No hay sesión activa";
+    return;
+  }
+
+  try{
+
+    await user.sendEmailVerification({
+      url:"https://roddox.es/inicio.html"
+    });
+
+    iniciarContador();
+
+  }catch(e){
+    alert("Error: "+e.message);
+  }
+
+}
+
+/* MODAL VERIFICACION */
+
+function mostrarModalVerificacion(){
+
+modal.style.display="flex";
+
+modalContent.innerHTML = `
+<h3>📩 Verifica tu correo</h3>
+
+<p>Te enviamos un enlace de verificación.</p>
+<p>Debes verificar tu correo para activar tu cuenta.</p>
+
+<button id="btnReenviar"
+onclick="reenviarCorreo()"
+style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px;width:100%">
+📩 Reenviar correo
+</button>
+
+<button onclick="window.location.href='inicio.html'"
+style="background:#7A1B7E;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px;width:100%">
+Ir a iniciar sesión
+</button>
+
+<p style="margin-top:10px;font-size:13px;color:#777">
+Si ya verificaste tu correo espera unos segundos.
+</p>
+`;
+
+iniciarContador();
+
+}
+
+/* DETECTAR VERIFICACION AUTOMATICA */
+
+function verificarCorreoAutomatico(){
+
+setInterval(async ()=>{
+
+  const user = auth.currentUser;
+
+  if(user){
+
+    await user.reload();
+
+    if(user.emailVerified){
+
+      modalContent.innerHTML = `
+      <h3>✅ Cuenta verificada</h3>
+
+      <p>Tu correo fue verificado correctamente</p>
+
+      <button onclick="window.location.href='inicio.html'"
+      style="background:#22c55e;margin-top:10px;padding:10px 20px;border:none;color:white;border-radius:6px">
+      Entrar
+      </button>
+      `;
+
+      db.collection("usuarios").doc(user.uid).update({
+        verificado:true
+      });
+
+    }
+
+  }
+
+},5000);
+
+}
+
 auth.onAuthStateChanged(user=>{
   if(user){
     user.reload().then(()=>{
-      if(!user.emailVerified){
-        console.log("Correo no verificado");
-      }else{
+      if(user.emailVerified){
         db.collection("usuarios").doc(user.uid).update({ verificado: true });
       }
     });
