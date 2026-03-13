@@ -1,359 +1,716 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Dashboard Usuarios</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+<meta charset="UTF-8">  
+<title>Dashboard Usuarios</title>  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  
 <style>
-:root{
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --text:#1f2937;
-  --primary:#4e9af1;
+:root {
+  --bg: #121827;       /* fondo principal oscuro */
+  --card: #1f2937;     /* cajas y modales ligeramente más claros */
+  --text: #e5e7eb;     /* texto claro */
+  --primary: #4e9af1;  /* color principal botones y acentos */
+  --secondary: #f97316;/* hover de botones */
+  --shadow: rgba(0, 0, 0, 0.6);
 }
-body.dark{--bg:#0f172a;--card:#111827;--text:#e5e7eb;}
-*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Arial;}
-body{background:var(--bg);color:var(--text);}
+
+/* RESET Y BODY */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+body { background: var(--bg); color: var(--text); }
 
 /* SIDEBAR */
-.sidebar{
-  width:250px;height:100vh;background:#020617;position:fixed;top:0;left:-250px;padding:20px;transition:.3s;z-index:1000;
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background: #111827;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  padding: 20px;
+  transition: left 0.3s;
+  border-right: 1px solid #222;
+  display: flex;
+  flex-direction: column;
 }
-.sidebar.active{left:0;}
-.sidebar h2{color:#fff;text-align:center;margin-bottom:20px;}
-.sidebar a{display:flex;align-items:center;gap:10px;padding:10px;color:#cbd5f5;text-decoration:none;border-radius:8px;margin:5px 0;}
-.sidebar a.active, .sidebar a:hover{background:var(--primary);color:#fff;}
+.sidebar.active { left: 0; }
+.sidebar h2 {
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  color: #cbd5f5;
+  text-decoration: none;
+  border-radius: 6px;
+  margin: 5px 0;
+  transition: 0.2s;
+}
+.sidebar a.active, .sidebar a:hover {
+  background: var(--primary);
+  color: #fff;
+}
 
 /* HAMBURGUESA */
-.hamburger{width:32px;cursor:pointer;margin:15px;}
-.hamburger span{display:block;height:3px;background:var(--text);margin:6px 0;transition:.3s;}
-.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(6px,6px);}
-.hamburger.active span:nth-child(2){opacity:0;}
-.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(7px,-7px);}
+.hamburger { width: 32px; cursor: pointer; margin: 15px; }
+.hamburger span {
+  display: block; height: 3px; background: var(--text);
+  margin: 6px 0; border-radius: 2px; transition: 0.3s;
+}
+.hamburger.active span:nth-child(1){ transform: rotate(45deg) translate(5px,5px); }
+.hamburger.active span:nth-child(2){ opacity:0; }
+.hamburger.active span:nth-child(3){ transform: rotate(-45deg) translate(6px,-6px); }
 
 /* CONTENT */
-.content{margin-left:20px;padding:20px;transition:.3s;}
-.content.active{margin-left:250px;}
-.box{background:var(--card);padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
-input,select,button{padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc;outline:none;width:100%;}
-button{cursor:pointer;background:var(--primary);color:#fff;border:none;}
-button:hover{opacity:0.9;}
-table{width:100%;border-collapse:collapse;margin-top:10px;color:var(--text);display:block;overflow-x:auto;}
-th,td{padding:8px;border:1px solid #ccc;text-align:center;}
-th{background:#111827;color:#fff;}
+.content { margin-left: 20px; padding: 25px; transition: margin-left 0.3s; }
+.content.active { margin-left: 250px; }
 
-/* MODAL EDITAR */
-.modal-overlay, #loginOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;}
-.modal-box{background:#111827;padding:20px;border-radius:12px;width:90%;max-width:400px;color:#fff;}
-#loginBox{position:relative;z-index:1000;}
+/* BOXES */
+.box {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.box:hover { transform: translateY(-3px); box-shadow: 0 8px 20px var(--shadow); }
+
+/* INPUTS & BUTTONS */
+input, select, button {
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  outline: none;
+  width: 100%;
+  background: #1f2937;
+  color: var(--text);
+  transition: all 0.2s;
+}
+input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 6px var(--primary); }
+
+button {
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+button:hover { background: var(--secondary); transform: translateY(-2px); }
+
+/* TABLE */
+table {
+  width: 100%; border-collapse: collapse; margin-top: 15px; display: block; overflow-x: auto; border-radius: 8px;
+}
+th, td {
+  padding: 10px;
+  border: 1px solid #374151;
+  text-align: center;
+}
+th { background: #111827; color: var(--card); font-weight: 600; }
+tr:hover td { background: #1f2937; }
+
+/* MODALES */
+.modal-overlay, #loginOverlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+.modal-box {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 8px 20px var(--shadow);
+}
 
 /* RESPONSIVE */
 @media (max-width:768px){
-  .sidebar{width:200px;left:-200px;}
-  .content.active{margin-left:0;}
-  .hamburger{margin:10px;}
+  .sidebar { width: 200px; left: -200px; }
+  .content.active { margin-left: 0; }
+  .hamburger { margin: 10px; }
 }
 </style>
-</head>
-<body>
-
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-<h2>DASHBOARD</h2>
-<a class="active" data-section="dashboard"><i class="fa fa-chart-bar"></i> Dashboard</a>
-<a data-section="users"><i class="fa fa-users"></i> Usuarios</a>
-<a data-section="settings"><i class="fa fa-gear"></i> Configuración</a>
-</div>
-
-<div class="hamburger" id="menuBtn"><span></span><span></span><span></span></div>
-
-<div class="content" id="content">
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="box" style="display:none;">
-<h2>Dashboard</h2>
-<p id="welcome"></p>
-<canvas id="roleChart"></canvas>
-</div>
-
-<!-- USUARIOS -->
-<div id="users" class="box" style="display:none;">
-<h2>Usuarios</h2>
-<h3>Crear Usuario</h3>
-<input id="newUser" placeholder="Usuario">
-<input id="newPass" placeholder="Contraseña">
-<input id="newName" placeholder="Nombre">
-<input id="newPhone" placeholder="WhatsApp">
-<input id="newExpire" type="date">
-<select id="newRole">
-<option value="admin">Admin</option>
-<option value="soporte">Soporte</option>
-<option value="vendedor">Vendedor</option>
-<option value="cliente">Cliente</option>
-</select>
-<button onclick="createUser()">Crear Usuario</button>
-
-<h3>Filtros</h3>
-<select id="filterStatus" onchange="loadUsers()">
-<option value="all">Todos</option>
-<option value="vigente">Vigentes</option>
-<option value="expirado">Expirados</option>
-</select>
-<button onclick="renewAll()">Renovar Todo +30 días</button>
-
-<h3>Listado de Usuarios</h3>
-<table>
-<thead>
-<tr><th>Usuario</th><th>Contraseña</th><th>Nombre</th><th>WhatsApp</th><th>Vence</th><th>Días</th><th>Acciones</th></tr>
-</thead>
-<tbody id="usersList"></tbody>
-</table>
-</div>
-
-<!-- CONFIGURACIÓN -->
-<div id="settings" class="box" style="display:none;">
-<h2>Configuración</h2>
-<button onclick="logout()">Cerrar sesión</button>
-
-<button onclick="toggleMaintenance()">🛠️ Modo Mantenimiento</button>
-<p id="maintStatus">Estado mantenimiento: DESACTIVADO</p>
-</div>
-
+</head>  
+<body>  
+<div class="modal-overlay" id="modalCreated" style="display:none;">  
+<div class="modal-box">  
+  
+<h3>Cuenta creada</h3>  
+  
+<p id="createdData"></p>  
+  
+<button id="sendWA">Enviar por WhatsApp</button>  
+  
+<button onclick="closeCreated()">Cerrar</button>  
+  
+</div>  
+</div>  
+<!-- SIDEBAR -->  
+<div class="sidebar" id="sidebar">  
+<h2>DASHBOARD</h2>  
+<a class="active" data-section="dashboard"><i class="fa fa-chart-bar"></i> Dashboard</a>  
+<a data-section="users"><i class="fa fa-users"></i> Usuarios</a>  
+<a data-section="settings"><i class="fa fa-gear"></i> Configuración</a>  
+</div>  
+  
+<div class="hamburger" id="menuBtn"><span></span><span></span><span></span></div>  
+  
+<div class="content" id="content">  
+  
+<!-- DASHBOARD -->  
+<div id="dashboard" class="box" style="display:none;">  
+<h2>Dashboard</h2>  
+<p id="welcome"></p>  
+<canvas id="roleChart"></canvas>  
+</div>  
+  
+<!-- USUARIOS -->  
+<div id="users" class="box" style="display:none;">  
+<h2>Usuarios</h2>  
+<h3>Crear Usuario</h3>  
+<input id="newUser" placeholder="Usuario">  
+<input id="newEmail" placeholder="Correo">  
+<input id="newPass" placeholder="Contraseña">  
+<input id="newName" placeholder="Nombre">  
+<input id="newPhone" placeholder="WhatsApp">  
+<input id="newExpire" type="date">  
+<select id="newRole">  
+<option value="admin">Admin</option>  
+<option value="soporte">Soporte</option>  
+<option value="vendedor">Vendedor</option>  
+<option value="cliente">Cliente</option>  
+</select>  
+<button onclick="createUser()">Crear Usuario</button>  
+  
+<h3>Filtros</h3>  
+<select id="filterStatus" onchange="loadUsers()">  
+<option value="all">Todos</option>  
+<option value="vigente">Vigentes</option>  
+<option value="expirado">Expirados</option>  
+</select>  
+<button onclick="renewAll()">Renovar Todo +30 días</button>  
+  
+<h3>Listado de Usuarios</h3>  
+<table>  
+<thead>  
+<tr>  
+<th>Usuario</th>  
+<th>Correo</th>  
+<th>Contraseña</th>  
+<th>Nombre</th>  
+<th>WhatsApp</th>  
+<th>Vence</th>  
+<th>Días</th>  
+<th>Acciones</th>  
+</tr>  
+</thead>  
+<tbody id="usersList"></tbody>  
+</table>  
+</div>  
+  
+<!-- CONFIGURACIÓN -->  
+<div id="settings" class="box" style="display:none;">  
+<h2>Configuración</h2>  
+<button onclick="logout()">Cerrar sesión</button>  
+  
+<button onclick="toggleMaintenance()">🛠️ Modo Mantenimiento</button>  
+<p id="maintStatus">Estado mantenimiento: DESACTIVADO</p>  
+<!-- BOTÓN MODO PWA -->
+  <button onclick="togglePWA()">📱 Modo PWA</button>  
+  <p id="pwaStatus">Estado PWA: DESACTIVADO</p>
+</div>  
+  
 <!-- MODAL EDITAR -->
 <div class="modal-overlay" id="modalEdit" style="display:none;">
-<div class="modal-box">
-<h3>Editar Usuario</h3>
-<input id="editUser" disabled>
-<input id="editPass" placeholder="Contraseña">
-<input id="editName" placeholder="Nombre">
-<input id="editPhone" placeholder="WhatsApp">
-<input id="editExpire" type="date">
-<select id="editRole">
-<option value="admin">Admin</option>
-<option value="soporte">Soporte</option>
-<option value="vendedor">Vendedor</option>
-<option value="cliente">Cliente</option>
-</select>
-<button onclick="saveEdit()">Guardar</button>
-<button onclick="closeModal()">Cancelar</button>
-</div>
-</div>
-
-<!-- LOGIN MODAL -->
-<div id="loginOverlay">
-  <div id="loginBox" class="box">
-    <h2>Iniciar Sesión</h2>
-    <input id="email" placeholder="Correo">
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Entrar</button>
-    <p id="error" style="color:#ef4444;display:none;">Credenciales incorrectas</p>
+  <div class="modal-box">
+    <h3>Editar Usuario</h3>
+    <input id="editUser" disabled>
+    <input id="editEmail" placeholder="Correo"> <!-- Cambiado de newEmail a editEmail -->
+    <input id="editPass" placeholder="Contraseña">
+    <input id="editName" placeholder="Nombre">
+    <input id="editPhone" placeholder="WhatsApp">
+    <input id="editExpire" type="date">
+    <select id="editRole">
+      <option value="admin">Admin</option>
+      <option value="soporte">Soporte</option>
+      <option value="vendedor">Vendedor</option>
+      <option value="cliente">Cliente</option>
+    </select>
+    <button onclick="saveEdit()">Guardar</button>
+    <button onclick="closeModal()">Cancelar</button>
   </div>
 </div>
+  
+<!-- LOGIN MODAL -->  
+<div id="loginOverlay">  
+  <div id="loginBox" class="box">  
+    <h2>Iniciar Sesión</h2>  
+    <input id="email" placeholder="Correo">  
+    <input id="password" type="password" placeholder="Contraseña">  
+    <button onclick="login()">Entrar</button>  
+    <p id="error" style="color:#ef4444;display:none;">Credenciales incorrectas</p>  
+  </div>  
+</div>  
+  
+<script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";  
+import { getDatabase, ref, set, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";  
+  
+const firebaseConfig = {  
+apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",  
+authDomain: "roddoxes.firebaseapp.com",  
+databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",  
+projectId: "roddoxes",  
+storageBucket: "roddoxes.firebasestorage.app",  
+messagingSenderId: "688697487472",  
+appId: "1:688697487472:web:7e3d19b907ae330dda04b5"  
+};  
+  
+const app = initializeApp(firebaseConfig);  
+const db = getDatabase(app);  
+  
+let dashboard, users, settings, welcome, usersList, filterStatus;  
+  
+let editModal, editUser, editPass, editName, editPhone, editExpire, editRole;  
+  
+let newUser, newEmail, newPass, newName, newPhone;  
+  
+const WEB_NAME = window.location.hostname;  
+  
+// ---------------- INIT ----------------  
+  
+document.addEventListener("DOMContentLoaded",()=>{  
+  
+dashboard = document.getElementById("dashboard");  
+users = document.getElementById("users");  
+settings = document.getElementById("settings");  
+welcome = document.getElementById("welcome");  
+usersList = document.getElementById("usersList");  
+filterStatus = document.getElementById("filterStatus");  
+  
+newUser = document.getElementById("newUser");  
+newEmail = document.getElementById("newEmail");  
+newPass = document.getElementById("newPass");  
+newName = document.getElementById("newName");  
+newPhone = document.getElementById("newPhone");  
+  
+editModal = document.getElementById("modalEdit");  
+editUser = document.getElementById("editUser");  
+editPass = document.getElementById("editPass");  
+editName = document.getElementById("editName");  
+editPhone = document.getElementById("editPhone");  
+editExpire = document.getElementById("editExpire");  
+editRole = document.getElementById("editRole");  
+  
+if(!localStorage.getItem("adminUser")){  
+document.getElementById("loginOverlay").style.display="flex";  
+}else{  
+mostrarPanel();  
+}  
+  
+sidebar.classList.remove("active");  
+content.classList.remove("active");  
+menuBtn.classList.remove("active");  
+  
+updateMaintText();  
+  
+});  
+  
+  
+// ---------------- MENU ----------------  
+  
+const sidebar=document.getElementById("sidebar");  
+const menuBtn=document.getElementById("menuBtn");  
+const content=document.getElementById("content");  
+  
+menuBtn.onclick=()=>{  
+sidebar.classList.toggle("active");  
+content.classList.toggle("active");  
+menuBtn.classList.toggle("active");  
+};  
+  
+document.querySelectorAll(".sidebar a").forEach(link=>{  
+link.onclick=()=>{  
+document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));  
+link.classList.add("active");  
+  
+dashboard.style.display="none";  
+users.style.display="none";  
+settings.style.display="none";  
+  
+document.getElementById(link.dataset.section).style.display="block";  
+  
+menuBtn.click();  
+};  
+});  
+  
+  
+// ---------------- LOGIN ----------------  
+  
+window.login=async()=>{  
+  
+const email = document.getElementById("email").value.trim();  
+const pass = document.getElementById("password").value.trim();  
+  
+if(email==="kevinaldaircamachoserna51@gmail.com" && pass==="1234"){  
+  
+localStorage.setItem("adminUser",email);  
+localStorage.setItem("adminRole","superadmin");  
+localStorage.setItem("adminName","Kevin");  
+  
+mostrarPanel();  
+return;  
+}  
+  
+const snap = await get(ref(db,"admins/"+email.replace(".","_")));  
+  
+if(!snap.exists()){  
+document.getElementById("error").style.display="block";  
+return;  
+}  
+  
+const data = snap.val();  
+  
+if(data.pass!==pass){  
+document.getElementById("error").style.display="block";  
+return;  
+}  
+  
+localStorage.setItem("adminUser",data.user);  
+localStorage.setItem("adminRole",data.role);  
+localStorage.setItem("adminName",data.name);  
+  
+mostrarPanel();  
+  
+};  
+  
+  
+// ---------------- PANEL ----------------  
+  
+function mostrarPanel() {
+  document.getElementById("loginOverlay").style.display = "none";
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  dashboard.style.display = "block";
+  users.style.display = "none";
+  settings.style.display = "none";
 
-const firebaseConfig = {
-apiKey: "AIzaSyDVvEXCUiCPB5RmAVVWfmce2x-FALLDL0c",
-    authDomain: "roddoxes.firebaseapp.com",
-    databaseURL: "https://roddoxes-default-rtdb.firebaseio.com",  
-    projectId: "roddoxes",
-    storageBucket: "roddoxes.firebasestorage.app",
-    messagingSenderId: "688697487472",
-    appId: "1:688697487472:web:7e3d19b907ae330dda04b5",
-    measurementId: "G-0DLHHJRSFP"
-  };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+  // Activar la sección dashboard en el menú
+  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+  document.querySelector(".sidebar a[data-section='dashboard']").classList.add("active");
 
-// ELEMENTOS
-let dashboard, users, settings, welcome, usersList, filterStatus;
-const WEB_NAME = window.location.hostname; 
-let editModal, editUser, editPass, editName, editPhone, editExpire, editRole;
+  welcome.innerText = "Bienvenido " + localStorage.getItem("adminName");
 
-document.addEventListener("DOMContentLoaded",()=>{
-  dashboard = document.getElementById("dashboard");
-  users = document.getElementById("users");
-  settings = document.getElementById("settings");
-  welcome = document.getElementById("welcome");
-  usersList = document.getElementById("usersList");
-  filterStatus = document.getElementById("filterStatus");
-  editModal = document.getElementById("modalEdit");
-  editUser = document.getElementById("editUser");
-  editPass = document.getElementById("editPass");
-  editName = document.getElementById("editName");
-  editPhone = document.getElementById("editPhone");
-  editExpire = document.getElementById("editExpire");
-  editRole = document.getElementById("editRole");
-
-  if(localStorage.getItem("adminUser")) mostrarPanel();
-
-  updateMaintText(); // Actualizamos al cargar
-});
-
-// MENU HAMBURGUESA
-const sidebar=document.getElementById("sidebar");
-const menuBtn=document.getElementById("menuBtn");
-const content=document.getElementById("content");
-menuBtn.onclick=()=>{
-  sidebar.classList.toggle("active");
-  content.classList.toggle("active");
-  menuBtn.classList.toggle("active");
-};
-document.querySelectorAll(".sidebar a").forEach(link=>{
-link.onclick=()=>{
-  document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));
-  link.classList.add("active");
-  if(dashboard) dashboard.style.display="none";
-  if(users) users.style.display="none";
-  if(settings) settings.style.display="none";
-  const section=document.getElementById(link.dataset.section);
-  if(section) section.style.display="block";
-  menuBtn.click();
-};
-});
-
-// LOGIN
-window.login=async()=>{
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
-if(email==="kevinaldaircamachoserna51@gmail.com" && pass==="1234"){
-localStorage.setItem("adminUser",email); localStorage.setItem("adminRole","superadmin"); localStorage.setItem("adminName","Kevin"); mostrarPanel(); return;
+  loadUsers();
+  loadChart();
 }
-const snap = await get(ref(db,"admins/"+email.replace(".","_")));
-if(!snap.exists()){document.getElementById("error").style.display="block"; return;}
-const data = snap.val();
-if(data.pass!==pass){document.getElementById("error").style.display="block"; return;}
-localStorage.setItem("adminUser",data.user); localStorage.setItem("adminRole",data.role); localStorage.setItem("adminName",data.name);
-mostrarPanel();
-}
+  
+  
+// ---------------- LOGOUT ----------------  
+  
+window.logout=()=>{  
+localStorage.clear();  
+location.reload();  
+};  
+  
+  
+// ---------------- CREATE USER ----------------  
+  
+window.createUser=async()=>{  
+  
+const user=newUser.value.trim();  
+const email=newEmail.value.trim();  
+const pass=newPass.value.trim();  
+const name=newName.value.trim();  
+const phone=newPhone.value.trim();  
+const expire=document.getElementById("newExpire").value;  
+const role=document.getElementById("newRole").value;  
+  
+if(!user||!pass||!name||!phone||!expire||!email){  
+alert("Completa todos");  
+return;  
+}  
+  
+const exist = await get(ref(db,"admins/"+user.replace(".","_")));  
+  
+if(exist.exists()){  
+alert("Usuario ya existe");  
+return;  
+}  
+  
+await set(ref(db,"admins/"+user.replace(".","_")),{  
+user,email,pass,name,phone,expire,role  
+});  
+  
+newUser.value="";  
+newEmail.value="";  
+newPass.value="";  
+newName.value="";  
+newPhone.value="";  
+document.getElementById("newExpire").value="";  
+  
+loadUsers();  
+loadChart();  
+  
+showCreated(user,email,pass,name,phone,expire);  
+  
+};  
+function showCreated(user,email,pass,name,phone,expire){  
+  
+const modal = document.getElementById("modalCreated");  
+const data = document.getElementById("createdData");  
+const btn = document.getElementById("sendWA");  
+  
+const web = window.location.hostname;  
+  
+const msg =  
+`Felicidades ${user} su cuenta se ha creado con éxito,  
+a continuación le doy sus datos de acceso.  
+  
+Web: ${web}  
+Usuario: ${user}  
+Correo: ${email}  
+Contraseña: ${pass}  
+Vence: ${expire}`;  
+  
+data.innerText = msg;  
+  
+const wa =  
+"https://wa.me/"+phone+  
+"?text="+encodeURIComponent(msg);  
+  
+btn.onclick=()=>{  
+window.open(wa);  
+};  
+  
+modal.style.display="flex";  
+  
+}  
+  
+// ---------------- LOAD USERS ----------------  
+  
+async function loadUsers() {
+  const snap = await get(ref(db, "admins"));
+  usersList.innerHTML = "";
+  if (!snap.exists()) return;
 
-// MOSTRAR PANEL
-function mostrarPanel(){
-const loginEl = document.getElementById("loginOverlay");
-if(loginEl) loginEl.style.display = "none";
-if(dashboard) dashboard.style.display="block";
-if(users) users.style.display="none";
-if(settings) settings.style.display="none";
-if(welcome) welcome.innerText="Bienvenido "+localStorage.getItem("adminName");
-loadUsers(); loadChart();
-}
+  const filter = filterStatus.value;
 
-// CERRAR SESIÓN
-window.logout=()=>{localStorage.clear(); location.reload()}
+  Object.entries(snap.val()).forEach(([id, u]) => {
+    const dias = u.expire
+      ? Math.floor((new Date(u.expire).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : 0;
 
-// CREAR USUARIO
-window.createUser=async()=>{
-const user=newUser.value.trim(), pass=newPass.value.trim(), name=newName.value.trim(), phone=newPhone.value.trim(), expire=document.getElementById("newExpire").value, role=document.getElementById("newRole").value;
-if(!user||!pass||!name||!phone||!expire){alert("Completa todos los campos"); return;}
-await set(ref(db,"admins/"+user.replace(".","_")),{user,pass,name,phone,expire,role});
-newUser.value=""; newPass.value=""; newName.value=""; newPhone.value=""; document.getElementById("newExpire").value="";
-loadUsers(); loadChart();
-}
+    if (filter === "vigente" && dias < 0) return;
+    if (filter === "expirado" && dias >= 0) return;
 
-// CARGAR USUARIOS
-async function loadUsers(){
-const snap = await get(ref(db,"admins"));
-if(!usersList) return;
-usersList.innerHTML="";
-if(!snap.exists()) return;
-const filter = filterStatus.value;
-Object.entries(snap.val()).forEach(([id,u])=>{
-const dias=Math.floor((new Date(u.expire).getTime()-Date.now())/(1000*60*60*24));
-if(filter==="vigente" && dias<0) return;
-if(filter==="expirado" && dias>=0) return;
-const msg=`Hola ${u.name}, tu servicio en ${WEB_NAME} vence en ${dias} días (hasta ${u.expire})`;
-const waUrl=`https://wa.me/${u.phone}?text=${encodeURIComponent(msg)}`;
-usersList.innerHTML+=`<tr>
-<td>${u.user}</td><td>${u.pass}</td><td>${u.name}</td><td>${u.phone}</td><td>${u.expire}</td><td>${dias}</td>
-<td>
-<button onclick="openEdit('${id}')">Editar</button>
-<button onclick="window.open('${waUrl}')">WhatsApp</button>
-<button onclick="deleteUser('${id}')">Eliminar</button>
-</td></tr>`;
-});
-loadChart();
-}
+    const waMsg = `Hola ${u.name}, tu servicio en ${WEB_NAME} vence en ${dias} días`;
+    const waUrl = `https://wa.me/${u.phone}?text=${encodeURIComponent(waMsg)}`;
 
-// EDITAR USUARIO
-window.openEdit=(id)=>{
-if(!editModal) return;
-editModal.style.display="flex";
-editModal.dataset.id=id;
-get(ref(db,"admins/"+id)).then(snap=>{
-if(!snap.exists()) return;
-const u=snap.val();
-editUser.value=u.user; editPass.value=u.pass; editName.value=u.name; editPhone.value=u.phone; editExpire.value=u.expire; editRole.value=u.role;
-});
-}
-window.closeModal=()=>{if(editModal) editModal.style.display="none";}
-window.saveEdit=async()=>{
-const id=editModal.dataset.id;
-await update(ref(db,"admins/"+id),{pass:editPass.value,name:editName.value,phone:editPhone.value,expire:editExpire.value,role:editRole.value});
-window.closeModal(); loadUsers();
-}
-
-// ELIMINAR USUARIO
-window.deleteUser=async(id)=>{if(!confirm("Eliminar usuario?")) return; await remove(ref(db,"admins/"+id)); loadUsers();}
-
-// RENOVAR TODO
-window.renewAll=async()=>{
-if(!confirm("Renovar todos los usuarios a hoy +30 días?")) return;
-const snap = await get(ref(db,"admins"));
-if(!snap.exists()) return;
-Object.entries(snap.val()).forEach(async([id,u])=>{
-const newDate=new Date(); newDate.setDate(newDate.getDate()+30);
-await update(ref(db,"admins/"+id),{expire:newDate.toISOString().split("T")[0]});
-});
-loadUsers();
-}
-
-// GRÁFICO VENCIMIENTO POR ROL
-let roleChart;
-async function loadChart(){
-const snap = await get(ref(db,"admins"));
-if(!snap.exists()) return;
-const data=Object.values(snap.val());
-const roles={}, expirado={}, vigente={};
-data.forEach(u=>{
-if(!roles[u.role]){roles[u.role]=0; vigente[u.role]=0; expirado[u.role]=0;}
-roles[u.role]++;
-const dias=Math.floor((new Date(u.expire).getTime()-Date.now())/(1000*60*60*24));
-if(dias<0){expirado[u.role]++;}else{vigente[u.role]++;}
-});
-const labels=Object.keys(roles);
-const dataVigente=labels.map(r=>vigente[r]||0);
-const dataExpirado=labels.map(r=>expirado[r]||0);
-const roleCanvas = document.getElementById("roleChart");
-if(!roleCanvas) return;
-const ctx = roleCanvas.getContext("2d");
-if(roleChart) roleChart.destroy();
-roleChart=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"Vigentes",data:dataVigente,backgroundColor:"#4e9af1"},{label:"Expirados",data:dataExpirado,backgroundColor:"#ef4444"}]},options:{responsive:true,plugins:{legend:{position:"top"}}}});
-}
-
-// MANTENIMIENTO
-window.toggleMaintenance = async () => {
-  const maintenanceRef = ref(db, "config/maintenance/enabled");
-  const current = await get(maintenanceRef);
-  const newState = !(current.exists() && current.val() === true);
-  await set(maintenanceRef, newState);
-  updateMaintText();
-}
-
-function updateMaintText(){
-  const maintenanceRef = ref(db, "config/maintenance/enabled");
-  get(maintenanceRef).then(snap => {
-    const state = snap.exists() && snap.val() === true;
-    const el = document.getElementById("maintStatus");
-    if(el) el.innerText = "Estado mantenimiento: " + (state ? "ACTIVADO" : "DESACTIVADO");
+    usersList.innerHTML += `
+      <tr>
+        <td>${u.user}</td>
+        <td>${u.email || ""}</td>
+        <td>*****</td>
+        <td>${u.name}</td>
+        <td><button onclick="window.open('${waUrl}')">${u.phone}</button></td>
+        <td>${u.expire || ""}</td>
+        <td>${dias}</td>
+        <td>
+          <button onclick="openEdit('${id}')">Editar</button>
+          <button onclick="deleteUser('${id}')">Eliminar</button>
+        </td>
+      </tr>
+    `;
   });
-}
-</script>
 
-</body>
-</html>
+  loadChart();
+}
+  
+  
+// ---------------- DELETE ----------------  
+  
+window.deleteUser=async(id)=>{  
+  
+if(!confirm("Eliminar?")) return;  
+  
+await remove(ref(db,"admins/"+id));  
+  
+loadUsers();  
+  
+};  
+  
+  
+// ---------------- EDIT ----------------  
+  
+window.openEdit=(id)=>{  
+  
+editModal.style.display="flex";  
+editModal.dataset.id=id;  
+  
+get(ref(db,"admins/"+id)).then(snap=>{  
+  
+const u=snap.val();  
+  
+editUser.value=u.user;  
+editPass.value=u.pass;  
+editName.value=u.name;  
+editPhone.value=u.phone;  
+editExpire.value=u.expire;  
+editRole.value=u.role;  
+  
+});  
+  
+};  
+  
+window.closeModal=()=>{  
+editModal.style.display="none";  
+};  
+  
+window.saveEdit = async () => {
+  const id = editModal.dataset.id;
+
+  await update(ref(db, "admins/" + id), {
+    email: editEmail.value,   // <--- actualizar correo
+    pass: editPass.value,
+    name: editName.value,
+    phone: editPhone.value,
+    expire: editExpire.value,
+    role: editRole.value
+  });
+
+  closeModal();
+  loadUsers();
+};
+
+  
+  
+// ---------------- CHART ----------------  
+  
+let roleChart;  
+  
+async function loadChart(){  
+  
+const snap = await get(ref(db,"admins"));  
+if(!snap.exists()) return;  
+  
+const data=Object.values(snap.val());  
+  
+const roles={},vigente={},expirado={};  
+  
+data.forEach(u=>{  
+  
+if(!roles[u.role]){  
+roles[u.role]=0;  
+vigente[u.role]=0;  
+expirado[u.role]=0;  
+}  
+  
+roles[u.role]++;  
+  
+const dias = u.expire  
+? Math.floor((new Date(u.expire).getTime()-Date.now())/(1000*60*60*24))  
+: 0;  
+  
+if(dias<0) expirado[u.role]++;  
+else vigente[u.role]++;  
+  
+});  
+  
+const labels=Object.keys(roles);  
+  
+const ctx=document.getElementById("roleChart");  
+  
+if(roleChart) roleChart.destroy();  
+  
+roleChart=new Chart(ctx,{  
+type:"bar",  
+data:{  
+labels,  
+datasets:[  
+{label:"Vigentes",data:labels.map(r=>vigente[r]),backgroundColor:"#4e9af1"},  
+{label:"Expirados",data:labels.map(r=>expirado[r]),backgroundColor:"#ef4444"}  
+]  
+}  
+});  
+  
+}  
+  // ---------------- RENOVAR TODO A 30 DÍAS ----------------
+window.renewAll = async () => {
+  const snap = await get(ref(db, "admins"));
+  if (!snap.exists()) return;
+
+  const updates = {};
+  const today = new Date();
+  today.setHours(0,0,0,0); // limpiar hora para evitar problemas
+
+  // Fecha de vencimiento = hoy + 30 días
+  const newExpire = new Date(today);
+  newExpire.setDate(newExpire.getDate() + 30);
+  const formattedExpire = newExpire.toISOString().split("T")[0];
+
+  Object.entries(snap.val()).forEach(([id, u]) => {
+    updates[id + "/expire"] = formattedExpire;
+  });
+
+  await update(ref(db, "admins"), updates);
+
+  loadUsers();  // recarga tabla
+  loadChart();  // recarga gráfico
+};
+  
+// ---------------- MAINT ----------------  
+  
+window.toggleMaintenance = async () => {  
+  
+const r = ref(db,"config/maintenance/enabled");  
+  
+const snap = await get(r);  
+  
+await set(r, !(snap.exists() && snap.val()));  
+  
+updateMaintText();  
+  
+};  
+  
+function updateMaintText(){  
+  
+get(ref(db,"config/maintenance/enabled")).then(s=>{  
+  
+const el=document.getElementById("maintStatus");  
+  
+if(!el) return;  
+  
+el.innerText="Estado mantenimiento: "+(s.exists()&&s.val()?"ACTIVADO":"DESACTIVADO");  
+  
+});  
+  
+}  
+  // ---------------- PWA ----------------
+window.togglePWA = () => {
+  const el = document.getElementById("pwaStatus");
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => el.innerText = "Estado PWA: ACTIVADO")
+      .catch(() => el.innerText = "Estado PWA: ERROR");
+  } else {
+    el.innerText = "Estado PWA: NO SOPORTADO";
+  }
+};
+</script>  
+  
+</body>  
+</html> 
