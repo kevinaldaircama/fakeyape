@@ -706,7 +706,7 @@ window.togglePWA = () => {
   const el = document.getElementById("pwaStatus");
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js")
+    navigator.serviceWorker.register("/service-worker.js")
       .then(() => el.innerText = "Estado PWA: ACTIVADO")
       .catch(() => el.innerText = "Estado PWA: ERROR");
   } else {
