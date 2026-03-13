@@ -4,9 +4,6 @@
 <meta charset="UTF-8">  
 <title>Dashboard Usuarios</title>  
 <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#720e9e">
-<link rel="icon" type="image/png" href="imagen/app_icon_xxxhdpi.png">
   
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
@@ -148,6 +145,21 @@ tr:hover td { background: #1f2937; }
 </style>
 </head>  
 <body>  
+    
+    <div class="modal-overlay" id="firebaseModal" style="display:none;">
+  <div class="modal-box">
+
+    <h3>Config Firebase</h3>
+
+    <textarea id="firebaseText"
+    style="width:100%;height:200px;"></textarea>
+
+    <button onclick="saveFirebase()">Guardar</button>
+    <button onclick="closeFirebaseModal()">Cerrar</button>
+
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalCreated" style="display:none;">  
 <div class="modal-box">  
   
@@ -231,9 +243,13 @@ tr:hover td { background: #1f2937; }
   
 <button onclick="toggleMaintenance()">🛠️ Modo Mantenimiento</button>  
 <p id="maintStatus">Estado mantenimiento: DESACTIVADO</p>  
+<button onclick="openFirebaseModal()">🔥 Config Firebase</button>
+<p id="firebaseStatus">Firebase: NO CONFIGURADO</p>
 <!-- BOTÓN MODO PWA -->
   <button onclick="togglePWA()">📱 Modo PWA</button>  
   <p id="pwaStatus">Estado PWA: DESACTIVADO</p>
+  
+ 
 </div>  
   
 <!-- MODAL EDITAR -->
@@ -296,7 +312,7 @@ const WEB_NAME = window.location.hostname;
 // ---------------- INIT ----------------  
   
 document.addEventListener("DOMContentLoaded",()=>{  
-  
+loadFirebaseConfig();
 dashboard = document.getElementById("dashboard");  
 users = document.getElementById("users");  
 settings = document.getElementById("settings");  
@@ -706,13 +722,68 @@ window.togglePWA = () => {
   const el = document.getElementById("pwaStatus");
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js")
+    navigator.serviceWorker.register("/sw.js")
       .then(() => el.innerText = "Estado PWA: ACTIVADO")
       .catch(() => el.innerText = "Estado PWA: ERROR");
   } else {
     el.innerText = "Estado PWA: NO SOPORTADO";
   }
 };
+
+// -------- FIREBASE CONFIG MODAL --------
+
+window.openFirebaseModal = () => {
+  document.getElementById("firebaseModal").style.display = "flex";
+};
+
+window.closeFirebaseModal = () => {
+  document.getElementById("firebaseModal").style.display = "none";
+};
+
+window.saveFirebase = async () => {
+
+  const text =
+    document.getElementById("firebaseText").value.trim();
+
+  if (!text) {
+    alert("Vacío");
+    return;
+  }
+
+  let obj;
+
+  try {
+    obj = eval("(" + text + ")");
+  } catch (e) {
+    alert("Error en JSON");
+    return;
+  }
+
+  await set(ref(db, "config/firebase"), obj);
+
+  document.getElementById("firebaseStatus").innerText =
+    "Firebase: CONFIGURADO";
+
+  closeFirebaseModal();
+};
+
+// -------- CARGAR CONFIG FIREBASE --------
+
+async function loadFirebaseConfig() {
+
+  const snap = await get(ref(db, "config/firebase"));
+
+  if (!snap.exists()) return;
+
+  const data = snap.val();
+
+  document.getElementById("firebaseStatus").innerText =
+    "Firebase: CONFIGURADO";
+
+  document.getElementById("firebaseText").value =
+    JSON.stringify(data, null, 2);
+
+}
 </script>  
   
 </body>  
