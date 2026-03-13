@@ -7,7 +7,7 @@
   <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#720e9e">
 <link rel="icon" type="image/png" href="imagen/app_icon_xxxhdpi.png">
-  
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
   
@@ -316,6 +316,7 @@ const WEB_NAME = window.location.hostname;
   
 document.addEventListener("DOMContentLoaded",()=>{  
 loadFirebaseConfig();
+loadPWAStatus();
 dashboard = document.getElementById("dashboard");  
 users = document.getElementById("users");  
 settings = document.getElementById("settings");  
@@ -720,18 +721,72 @@ el.innerText="Estado mantenimiento: "+(s.exists()&&s.val()?"ACTIVADO":"DESACTIVA
 });  
   
 }  
-  // ---------------- PWA ----------------
-window.togglePWA = () => {
+// ---------------- PWA FIREBASE ----------------
+
+window.togglePWA = async () => {
+
   const el = document.getElementById("pwaStatus");
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js")
+  const snap = await get(ref(db, "config/pwa"));
+
+  let status = false;
+
+  if (snap.exists()) {
+    status = snap.val();
+  }
+
+  status = !status;
+
+  await set(ref(db, "config/pwa"), status);
+
+  if (status) {
+
+    navigator.serviceWorker.register("/service-worker.js")
       .then(() => el.innerText = "Estado PWA: ACTIVADO")
       .catch(() => el.innerText = "Estado PWA: ERROR");
+
   } else {
-    el.innerText = "Estado PWA: NO SOPORTADO";
+
+    const reg = await navigator.serviceWorker.getRegistration();
+
+    if (reg) await reg.unregister();
+
+    el.innerText = "Estado PWA: DESACTIVADO";
+
   }
+
 };
+
+async function loadPWAStatus() {
+
+  const el = document.getElementById("pwaStatus");
+
+  const snap = await get(ref(db, "config/pwa"));
+
+  if (!snap.exists()) {
+    el.innerText = "Estado PWA: DESACTIVADO";
+    return;
+  }
+
+  const status = snap.val();
+
+  if (status) {
+
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(() => el.innerText = "Estado PWA: ACTIVADO")
+      .catch(() => el.innerText = "Estado PWA: ERROR");
+
+  } else {
+
+    const reg = await navigator.serviceWorker.getRegistration();
+
+    if (reg) await reg.unregister();
+
+    el.innerText = "Estado PWA: DESACTIVADO";
+
+  }
+
+}
 
 // -------- FIREBASE CONFIG MODAL --------
 
